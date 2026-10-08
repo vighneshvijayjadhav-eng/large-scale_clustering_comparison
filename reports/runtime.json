@@ -26,5 +26,8 @@
   "repeats": 1,
   "timeout_seconds": 900,
   "scaler": "Frozen final model training scaler, identical for every benchmark",
-  "sampling": "Seeded permutation of all cleaned rows; nested prefixes"
+  "sampling": "Seeded permutation of all cleaned rows; nested prefixes",
+  "environment": "local",
+  "experiment_id": "c56a94397cbeff1b80aec1184b3415890c520068c93edf1b8415b88a7cdc5d65",
+  "k": 2
 }

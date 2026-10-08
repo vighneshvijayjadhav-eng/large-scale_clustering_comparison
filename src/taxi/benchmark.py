@@ -1,6 +1,7 @@
 """Lean benchmark coordinator: heavy preparation runs in a short-lived process."""
 
 import csv
+import hashlib
 from datetime import datetime, timezone
 import importlib.metadata
 import json
@@ -125,8 +126,10 @@ def run_worker(algorithm, rows, k, batch_size=1000, streaming=False, timeout=900
     }
 
 
-def benchmark(artifacts, full):
-    global FEATURES
+def benchmark(artifacts, full, environment="local", output_dir="reports", full_only=False):
+    global FEATURES, REPORTS
+    REPORTS = Path(output_dir)
+    REPORTS.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
     for name in ["benchmarks.csv", "batch_study.csv", "runtime.json", "full_decision.json"]:
         previous = REPORTS / name
@@ -138,6 +141,16 @@ def benchmark(artifacts, full):
     context = json.loads(Path("artifacts/benchmark_context.json").read_text())
     k, n = context["k"], context["rows"]
     FEATURES = context["features"]
+    frozen = Path("reports/frozen_preprocessing.json")
+    experiment_id = (
+        hashlib.sha256(
+            json.dumps(
+                json.loads(frozen.read_text()), sort_keys=True, separators=(",", ":")
+            ).encode()
+        ).hexdigest()
+        if frozen.exists()
+        else "unrecorded"
+    )
     # Never reuse ARI labels from a previous run with a different scaler or k.
     for old in Path("artifacts").glob("labels_*.npy"):
         old.unlink()
@@ -145,6 +158,11 @@ def benchmark(artifacts, full):
         REPORTS / "runtime.json",
         {
             "platform": platform.platform(),
+            "environment": environment,
+            "experiment_id": experiment_id,
+            "git_commit": subprocess.run(
+                ["git", "rev-parse", "HEAD"], capture_output=True, text=True
+            ).stdout.strip(),
             "started_utc": stamp,
             "python": sys.version,
             "packages": {
@@ -163,6 +181,15 @@ def benchmark(artifacts, full):
             "threads": 2,
             "ram_gb": psutil.virtual_memory().total / 1024**3,
             "seed": SEED,
+            "k": k,
+            "estimator_parameters": {
+                "n_init": 10,
+                "max_iter": 300,
+                "minibatch_default_batch_size": 1000,
+                "streaming_block_rows": 10000,
+                "streaming_passes": 1,
+                "silhouette_sample_rows": 2000,
+            },
             "features": FEATURES,
             "memory_measure": "50 ms sampled worker process-tree RSS across startup, fit and metrics; not fit-only allocation",
             "repeats": 1,
@@ -172,17 +199,25 @@ def benchmark(artifacts, full):
         },
     )
     results = []
-    for size in [50000, 100000, 250000, 500000, 1000000] + ([n] if full else []):
+    for size in ([] if full_only else [50000, 100000, 250000, 500000, 1000000]) + (
+        [n] if full else []
+    ):
         for algorithm in ["KMeans", "MiniBatchKMeans"]:
             if size > n:
                 row = {"algorithm": algorithm, "rows": size, "status": "skipped_insufficient_rows"}
             else:
                 row = run_worker(algorithm, size, k)
-            results.append(row)
+            results.append({**row, "environment": environment, "experiment_id": experiment_id})
             print(row, flush=True)
             save_rows(REPORTS / "benchmarks.csv", results)
     if full:
-        results.append(run_worker("MiniBatchKMeans", n, k, streaming=True))
+        results.append(
+            {
+                **run_worker("MiniBatchKMeans", n, k, streaming=True),
+                "environment": environment,
+                "experiment_id": experiment_id,
+            }
+        )
         save_rows(REPORTS / "benchmarks.csv", results)
         print(results[-1], flush=True)
         write_json(
@@ -195,8 +230,15 @@ def benchmark(artifacts, full):
             {"status": "not_requested", "next_command": "taxi benchmark --full"},
         )
     batches = []
-    for size in [100, 500, 1000, 5000, 10000]:
-        batches.append(run_worker("MiniBatchKMeans", min(100000, n), k, batch_size=size))
+    for size in [] if full_only else [100, 500, 1000, 5000, 10000]:
+        batches.append(
+            {
+                **run_worker("MiniBatchKMeans", min(100000, n), k, batch_size=size),
+                "environment": environment,
+                "experiment_id": experiment_id,
+            }
+        )
         save_rows(REPORTS / "batch_study.csv", batches)
         print(batches[-1], flush=True)
-    subprocess.run([sys.executable, "-m", "taxi.experiment", "plots"], check=True)
+    write_json(REPORTS / "benchmarks.json", results)
+    subprocess.run([sys.executable, "-m", "taxi.experiment", "plots", str(REPORTS)], check=True)

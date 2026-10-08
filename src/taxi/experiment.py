@@ -143,7 +143,7 @@ def train_real(lf, out, rows, config=None):
             "seed": SEED,
         },
     )
-    _, metadata = fit_bundle(
+    bundle, metadata = fit_bundle(
         sample,
         out,
         k=chosen,
@@ -153,6 +153,16 @@ def train_real(lf, out, rows, config=None):
         anomaly_percentile=config["anomaly_percentile"],
     )
     write_json(REPORTS / "model_metadata.json", metadata)
+    from taxi.frozen import export_snapshot
+
+    export_snapshot(
+        bundle["scaler"],
+        config["features"],
+        chosen,
+        config["rules"],
+        provenance,
+        REPORTS / "frozen_preprocessing.json",
+    )
     pl.read_csv(Path(out) / "profiles.csv").write_csv(REPORTS / "profiles.csv")
     print(json.dumps(metadata, indent=2), flush=True)
 
@@ -175,25 +185,47 @@ def build_benchmark_array(bundle):
     return n
 
 
-def benchmark_plots():
+def benchmark_plots(reports=REPORTS):
     for filename, xaxis in [("benchmarks", "rows"), ("batch_study", "batch_size")]:
         import plotly.express as px
 
-        df = pl.read_csv(REPORTS / f"{filename}.csv").filter(pl.col("status") == "ok").to_pandas()
+        if not (reports / f"{filename}.csv").exists():
+            continue
+        df = pl.read_csv(reports / f"{filename}.csv").filter(pl.col("status") == "ok").to_pandas()
         if len(df):
             df["series"] = df["algorithm"] + df["streaming"].map({True: " (streaming)", False: ""})
             px.line(df, x=xaxis, y="fit_seconds", color="series", markers=True).write_html(
-                REPORTS / f"{filename}.html", include_plotlyjs="cdn"
+                reports / f"{filename}.html", include_plotlyjs="cdn"
             )
 
 
 if __name__ == "__main__":
     if sys.argv[1] == "prepare":
         bundle = joblib.load(Path(sys.argv[2]) / "benchmark_preprocessing.joblib")
+        frozen_path = REPORTS / "frozen_preprocessing.json"
+        if frozen_path.exists():
+            from taxi.frozen import restore_scaler
+
+            snapshot = json.loads(frozen_path.read_text())
+            reference = restore_scaler(snapshot)
+            if (
+                bundle["k"] != snapshot["k"]
+                or bundle.get("features", FEATURES) != snapshot["features"]
+            ):
+                raise ValueError(
+                    "Benchmark artifacts differ from frozen features/k; regenerate together."
+                )
+            if not all(
+                np.array_equal(getattr(bundle["scaler"], name), getattr(reference, name))
+                for name in ["mean_", "scale_", "var_"]
+            ):
+                raise ValueError(
+                    "Benchmark scaler differs from frozen metadata; regenerate together."
+                )
         rows = build_benchmark_array(bundle)
         write_json(
             "artifacts/benchmark_context.json",
             {"k": bundle["k"], "rows": rows, "features": bundle.get("features", FEATURES)},
         )
     elif sys.argv[1] == "plots":
-        benchmark_plots()
+        benchmark_plots(Path(sys.argv[2]) if len(sys.argv) > 2 else REPORTS)

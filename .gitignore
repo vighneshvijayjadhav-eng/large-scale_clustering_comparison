@@ -12,4 +12,6 @@ artifacts/
 *.mmap
 *.parquet
 *.log
+.ipynb_checkpoints/
+colab_results.zip
 

@@ -8,6 +8,7 @@ import polars as pl
 import streamlit as st
 
 from taxi.model import load_bundle, predict
+from taxi.results import combine_results
 
 st.set_page_config(
     page_title="Taxi Pattern Lab", page_icon="🚕", layout="wide", initial_sidebar_state="expanded"
@@ -113,17 +114,38 @@ elif section == "Discovered clusters":
         "Bounded reference sample only. UMAP axes have no physical units; apparent separation is not proof of cluster quality."
     )
 elif section == "Algorithm comparison":
+    st.caption(
+        "Real January benchmark evidence. Local and Colab runtimes are labeled separately; cross-machine timing is not an algorithm-only speed comparison."
+    )
+    colab_upload = st.file_uploader(
+        "Optional Colab benchmark CSV", type=["csv"], key="colab_results"
+    )
     for filename in ["k_selection.csv", "benchmarks.csv", "batch_study.csv"]:
         path = Path("reports") / filename
         if path.exists():
             st.subheader(filename.removesuffix(".csv").replace("_", " ").title())
             df = pl.read_csv(path)
+            if filename == "benchmarks.csv":
+                try:
+                    imported = None
+                    if colab_upload is not None:
+                        if colab_upload.size > 1024**2:
+                            raise ValueError("Benchmark report must be under 1 MB.")
+                        imported = pl.read_csv(colab_upload)
+                    elif Path("reports/colab/benchmarks.csv").exists():
+                        imported = pl.read_csv("reports/colab/benchmarks.csv")
+                    df = combine_results(df, imported)
+                except (ValueError, pl.exceptions.PolarsError) as error:
+                    st.error(str(error))
             st.dataframe(df, hide_index=True)
             if "fit_seconds" in df.columns:
                 successful = df.filter(pl.col("status") == "ok").to_pandas()
                 if len(successful):
-                    successful["series"] = successful["algorithm"] + successful["streaming"].map(
-                        {True: " (streaming)", False: ""}
+                    successful["series"] = (
+                        successful.get("environment", "local")
+                        + " · "
+                        + successful["algorithm"]
+                        + successful["streaming"].map({True: " (streaming)", False: ""})
                     )
                     x = "batch_size" if filename == "batch_study.csv" else "rows"
                     for y in ["fit_seconds", "peak_rss_mb", "normalized_inertia", "silhouette"]:

@@ -65,3 +65,33 @@ Parquet datetime columns are supported. Maximum upload: 20 MB and 100,000 rows.
 `row_id` is the original zero-based record position. Invalid records are separately downloadable.
 
 Official source: [NYC TLC Trip Record Data](https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page).
+
+## Free Google Colab fallback for full benchmarks
+
+[Open the Colab notebook](https://colab.research.google.com/github/vighneshvijayjadhav-eng/large-scale_clustering_comparison/blob/main/notebooks/full_dataset_benchmark_colab.ipynb).
+Use a free **CPU** runtime and run cells in order. This supplements the local app; it does not
+host Streamlit or replace local inference. It installs isolated Python 3.12, downloads or reuses
+the official file, and reuses the **exact local fitted scaler, features, rules, k and seed** from
+`reports/frozen_preprocessing.json`. Source hash and clean count are verified. No model pickle
+needs to leave the laptop.
+
+Both full estimators run in the same runtime, plus a separately labeled incremental MiniBatch
+pass. `ALL_SIZES=True` also repeats smaller sizes and the batch study there. Memory checks,
+a 15-minute worker timeout and bounded silhouette remain enforced. Failed full runs are
+recorded explicitly; no silent downsampling and no paid resources are required.
+
+Download `colab_results.zip`, then from the local project:
+
+```powershell
+Expand-Archive "$HOME\Downloads\colab_results.zip" -DestinationPath .\reports\colab -Force
+.\.venv\Scripts\streamlit run app.py
+```
+
+**Algorithm comparison** automatically loads the Colab CSV alongside local results. Alternatively
+use **Optional Colab benchmark CSV** there. A frozen-experiment fingerprint prevents combining
+different configurations. Curves include execution environment; compare algorithms within a
+runtime, since cross-machine time reflects hardware differences. CSV/JSON, runtime details,
+provenance and HTML plots are exported; datasets/models stay excluded.
+
+Commit only actual small results after execution. **No Colab results have been run or claimed
+in this delivery.** Notebook validity, scaler restoration and report import are tested locally.

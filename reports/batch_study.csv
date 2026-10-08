@@ -1,6 +1,6 @@
-algorithm,rows,batch_size,streaming,seed,k,feature_count,available_mb,estimated_mb,status,detail,peak_rss_mb,worker_seconds,source_attempt
-MiniBatchKMeans,100000,100,false,42,2,6,517.47265625,265.1552734375,aborted_low_memory,Safety monitor terminated worker,20.171875,0.16809539999985645,fourth
-MiniBatchKMeans,100000,500,false,42,2,6,512.84375,265.1552734375,aborted_low_memory,Safety monitor terminated worker,20.18359375,0.17111560000012105,fourth
-MiniBatchKMeans,100000,1000,false,42,2,6,515.80078125,265.1552734375,aborted_low_memory,Safety monitor terminated worker,14.203125,0.09785759999977017,fourth
-MiniBatchKMeans,100000,5000,false,42,2,6,515.16015625,265.1552734375,aborted_low_memory,Safety monitor terminated worker,20.21875,0.17051570000012362,fourth
-MiniBatchKMeans,100000,10000,false,42,2,6,517.0,265.1552734375,aborted_low_memory,Safety monitor terminated worker,18.4765625,0.16946749999988242,fourth
+algorithm,rows,batch_size,streaming,seed,k,feature_count,available_mb,estimated_mb,status,detail,peak_rss_mb,worker_seconds,source_attempt,environment,experiment_id
+MiniBatchKMeans,100000,100,false,42,2,6,517.47265625,265.1552734375,aborted_low_memory,Safety monitor terminated worker,20.171875,0.16809539999985645,fourth,local,c56a94397cbeff1b80aec1184b3415890c520068c93edf1b8415b88a7cdc5d65
+MiniBatchKMeans,100000,500,false,42,2,6,512.84375,265.1552734375,aborted_low_memory,Safety monitor terminated worker,20.18359375,0.17111560000012105,fourth,local,c56a94397cbeff1b80aec1184b3415890c520068c93edf1b8415b88a7cdc5d65
+MiniBatchKMeans,100000,1000,false,42,2,6,515.80078125,265.1552734375,aborted_low_memory,Safety monitor terminated worker,14.203125,0.09785759999977017,fourth,local,c56a94397cbeff1b80aec1184b3415890c520068c93edf1b8415b88a7cdc5d65
+MiniBatchKMeans,100000,5000,false,42,2,6,515.16015625,265.1552734375,aborted_low_memory,Safety monitor terminated worker,20.21875,0.17051570000012362,fourth,local,c56a94397cbeff1b80aec1184b3415890c520068c93edf1b8415b88a7cdc5d65
+MiniBatchKMeans,100000,10000,false,42,2,6,517.0,265.1552734375,aborted_low_memory,Safety monitor terminated worker,18.4765625,0.16946749999988242,fourth,local,c56a94397cbeff1b80aec1184b3415890c520068c93edf1b8415b88a7cdc5d65

@@ -10,9 +10,10 @@ from taxi.fixture import synthetic
 from taxi.model import fit_bundle
 
 
-def test_app_sections(tmp_path):
+def test_app_sections(tmp_path, monkeypatch):
     models = tmp_path / "models"
     fit_bundle(synthetic(60), models, k=3, with_umap=False)
+    monkeypatch.chdir(tmp_path)  # Never load the developer's real artifacts in offline tests.
     app = AppTest.from_file(str(Path(__file__).parents[1] / "app.py"), default_timeout=30)
     app.run()
     app.sidebar.text_input[0].set_value(str(models)).run()
@@ -26,6 +27,7 @@ def test_app_sections(tmp_path):
 def test_upload_ui_exports(tmp_path, monkeypatch, suffix):
     models = tmp_path / "models"
     fit_bundle(synthetic(60), models, k=3, with_umap=False)
+    monkeypatch.chdir(tmp_path)
     unseen = synthetic(12, 21)
     stream = BytesIO()
     if suffix == "csv":

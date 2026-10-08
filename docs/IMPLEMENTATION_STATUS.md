@@ -57,3 +57,28 @@ scripts/smoke_saved.py passed all four combinations of both algorithms and CSV/P
 30 real holdout records excluded from training. All records had valid 2D and 3D projections,
 stable labels across file formats, preserved source row positions, and full CSV exports.
 Features/rules/anomaly threshold are configurable, persisted and reused during inference.
+
+Milestone 3 commit: 159ccb6, pushed to origin/main and verified by matching remote SHA.
+Final local suite at that milestone: 18 passed in 38.73s; Ruff lint/format and diff check passed.
+GitHub CLI has no API login, so CI status was not verified through gh.
+Styled preview restarted. Native sidebar collapse/reopen and grid background verified in browser.
+
+## Added Colab fallback (same project, no restart)
+Notebook: notebooks/full_dataset_benchmark_colab.ipynb. Reuses existing preprocessing and workers,
+same frozen scaler/features/k/rules/seed and source hash; no UMAP/model refitting needed.
+Runs full ordinary KMeans and MiniBatch together plus explicit streaming MiniBatch, with resource
+checks and no size reduction. Optional same-runtime smaller-size/batch-size reruns are available.
+Exports labeled CSV/JSON, runtime metadata and small plots. Dashboard supports automatic
+reports/colab loading or validated CSV import alongside local results. No Colab execution or
+results are claimed; notebook compilation and reusable workflow pieces are tested locally.
+
+Colab validation: 21 tests passed in 15.72s using workspace-only temporary fixtures; Ruff lint,
+format and git diff check passed. Standard pytest temp-directory creation is denied in this
+desktop sandbox, so a temporary pytest plugin supplied ordinary workspace directories. A
+third-party temporary-directory cleanup warning remained at interpreter exit; exit status was 0.
+UI tests now isolate their working directory, preventing accidental real-artifact loading.
+Notebook code cells compile with no stored outputs. Scaler JSON restoration is numerically
+identical in tests, and mismatched Colab report fingerprints/environments are rejected.
+Real 3D UMAP was visually verified with rotation controls and point hover in the browser.
+Automatic approval review initially blocked an elevated command due to account usage limits,
+not a safety finding; workspace-only edits and checks continued.

@@ -71,3 +71,13 @@ storage, but ordinary KMeans still allocates working memory. Failures/skips are 
 CI uses generated synthetic data only. Models are trusted local joblib files: never load an
 untrusted pickle. Upload supports only CSV/Parquet and does not accept model files. UI limits
 uploads to 20 MiB and 100,000 rows. Saved feature list and artifact version are checked on load.
+
+## Colab fallback
+The notebook supplements local execution. It reconstructs the exact local StandardScaler from
+JSON numeric state without fitting, verifies the same source hash and cleaned count, and calls
+the same memmap preparation and estimator workers. Both ordinary estimators run on one free
+CPU runtime; incremental fitting is separately flagged. Versions, Git revision, k, parameters,
+sample size, status and environment are exported. A canonical JSON fingerprint ignores line
+ending differences. Imports with a different fingerprint, seed, k or feature count are rejected.
+No Colab results are prefilled. Compare algorithms within the same runtime; cross-machine
+timing differences also reflect hardware and dependency versions.
