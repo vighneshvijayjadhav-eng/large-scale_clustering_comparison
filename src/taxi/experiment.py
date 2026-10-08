@@ -1,11 +1,7 @@
 """Real data ingestion, bounded selection and isolated benchmark workers."""
 
 import hashlib
-import importlib.metadata
 import json
-import os
-import platform
-import subprocess
 import sys
 import time
 import urllib.request
@@ -14,17 +10,12 @@ from pathlib import Path
 
 import joblib
 import numpy as np
-import plotly.express as px
 import polars as pl
-import psutil
 import pyarrow.parquet as pq
-from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score
-from sklearn.preprocessing import StandardScaler
-from threadpoolctl import threadpool_limits
 
 from taxi.data import FEATURES, Rules, matrix, prepare, scan
-from taxi.model import SEED, fit_bundle
+
+SEED = 42
 
 URL = "https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2025-01.parquet"
 PAGE = "https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page"
@@ -59,10 +50,10 @@ def download():
     print(path)
 
 
-def clean_data(path):
+def clean_data(path, rules=Rules()):
     REPORTS.mkdir(exist_ok=True)
     Path("data").mkdir(exist_ok=True)
-    good, bad = prepare(scan(path))
+    good, bad = prepare(scan(path), rules)
     good.sink_parquet("data/clean.parquet", engine="streaming")
     reasons = bad.group_by("rejection_reason").len().collect(engine="streaming")
     clean = pl.scan_parquet("data/clean.parquet")
@@ -79,7 +70,7 @@ def clean_data(path):
         "accepted_rows": n,
         "rejected_rows": rejected,
         "reasons": dict(reasons.iter_rows()),
-        "rules": asdict(Rules()),
+        "rules": asdict(rules),
     }
     write_json(REPORTS / "provenance.json", report)
     clean.select(FEATURES).collect(engine="streaming").describe().write_csv(
@@ -101,10 +92,23 @@ def sample_rows(lf, n):
     )
 
 
-def train_real(lf, out, rows):
+def train_real(lf, out, rows, config=None):
+    import plotly.express as px
+    from sklearn.cluster import KMeans
+    from sklearn.metrics import silhouette_score
+    from sklearn.preprocessing import StandardScaler
+    from threadpoolctl import threadpool_limits
+    from taxi.model import fit_bundle
+
+    config = config or {"features": FEATURES, "rules": asdict(Rules()), "anomaly_percentile": 99}
+    provenance = json.loads((REPORTS / "provenance.json").read_text())
+    if config["rules"] != provenance["rules"]:
+        raise ValueError(
+            "Cleaning rules differ. Rerun clean with the same --config before training."
+        )
     sample = sample_rows(lf, rows)
     selection = sample_rows(lf, min(20000, rows))
-    x = StandardScaler().fit_transform(matrix(selection)).astype("float32")
+    x = StandardScaler().fit_transform(matrix(selection, config["features"])).astype("float32")
     scores = []
     with threadpool_limits(limits=2):
         for k in range(2, 9):
@@ -139,20 +143,29 @@ def train_real(lf, out, rows):
             "seed": SEED,
         },
     )
-    _, metadata = fit_bundle(sample, out, k=chosen, source=URL)
+    _, metadata = fit_bundle(
+        sample,
+        out,
+        k=chosen,
+        source=URL,
+        rules=Rules(**config["rules"]),
+        features=config["features"],
+        anomaly_percentile=config["anomaly_percentile"],
+    )
     write_json(REPORTS / "model_metadata.json", metadata)
     pl.read_csv(Path(out) / "profiles.csv").write_csv(REPORTS / "profiles.csv")
     print(json.dumps(metadata, indent=2), flush=True)
 
 
 def build_benchmark_array(bundle):
+    features = bundle.get("features", FEATURES)
     source = pq.ParquetFile("data/clean.parquet")
     n = source.metadata.num_rows
     path = Path("data/benchmark.npy")
-    target = np.lib.format.open_memmap(path, mode="w+", dtype="float32", shape=(n, len(FEATURES)))
+    target = np.lib.format.open_memmap(path, mode="w+", dtype="float32", shape=(n, len(features)))
     offset = 0
-    for batch in source.iter_batches(batch_size=50000, columns=FEATURES):
-        values = matrix(pl.from_arrow(batch))
+    for batch in source.iter_batches(batch_size=50000, columns=features):
+        values = matrix(pl.from_arrow(batch), features)
         target[offset : offset + len(values)] = bundle["scaler"].transform(values)
         offset += len(values)
     target.flush()
@@ -162,149 +175,25 @@ def build_benchmark_array(bundle):
     return n
 
 
-def run_worker(algorithm, rows, k, batch_size=1000, streaming=False, timeout=900):
-    available = psutil.virtual_memory().available
-    # Working arrays plus 256 MiB interpreter/metrics headroom; live monitor also reserves RAM.
-    required = rows * len(FEATURES) * 4 * (10 if algorithm == "KMeans" else 4) + 256 * 1024**2
-    base = {
-        "algorithm": algorithm,
-        "rows": rows,
-        "batch_size": batch_size,
-        "streaming": streaming,
-        "seed": SEED,
-        "k": k,
-        "feature_count": len(FEATURES),
-        "available_mb": available / 1024**2,
-        "estimated_mb": required / 1024**2,
-    }
-    if not streaming and required > available * 0.6:
-        return {
-            **base,
-            "status": "skipped_memory_preflight",
-            "detail": "Estimated working set exceeds 60% available RAM",
-        }
-    output = Path("artifacts/worker.json")
-    output.parent.mkdir(exist_ok=True)
-    output.unlink(missing_ok=True)
-    cmd = [
-        sys.executable,
-        "-m",
-        "taxi.worker",
-        algorithm,
-        str(rows),
-        str(k),
-        str(batch_size),
-        str(int(streaming)),
-        str(output),
-    ]
-    env = {
-        **os.environ,
-        "OMP_NUM_THREADS": "2",
-        "OPENBLAS_NUM_THREADS": "2",
-        "MKL_NUM_THREADS": "2",
-    }
-    started = time.perf_counter()
-    peak = 0
-    with open("artifacts/worker.log", "w", encoding="utf-8") as log:
-        proc = subprocess.Popen(cmd, stdout=log, stderr=log, env=env)
-        monitor = psutil.Process(proc.pid)
-        status = None
-        while proc.poll() is None:
-            try:
-                peak = max(peak, monitor.memory_info().rss)
-            except psutil.NoSuchProcess:
-                pass
-            if time.perf_counter() - started > timeout:
-                status = "aborted_timeout"
-            elif psutil.virtual_memory().available < 512 * 1024**2:
-                status = "aborted_low_memory"
-            if status:
-                proc.kill()
-                proc.wait()
-                break
-            time.sleep(0.05)
-    if status:
-        result = {"status": status, "detail": "Safety monitor terminated worker"}
-    elif proc.returncode != 0 or not output.exists():
-        result = {"status": "failed", "detail": Path("artifacts/worker.log").read_text()[-2000:]}
-    else:
-        result = json.loads(output.read_text())
-    return {
-        **base,
-        **result,
-        "peak_rss_mb": peak / 1024**2,
-        "worker_seconds": time.perf_counter() - started,
-    }
-
-
-def benchmark(artifacts, full):
-    bundle = joblib.load(Path(artifacts) / "benchmark_preprocessing.joblib")
-    k = bundle["k"]
-    n = build_benchmark_array(bundle)
-    # Never reuse ARI labels from a previous run with a different scaler or k.
-    for old in Path("artifacts").glob("labels_*.npy"):
-        old.unlink()
-    write_json(
-        REPORTS / "runtime.json",
-        {
-            "platform": platform.platform(),
-            "python": sys.version,
-            "packages": {
-                name: importlib.metadata.version(name)
-                for name in [
-                    "numpy",
-                    "polars",
-                    "scikit-learn",
-                    "umap-learn",
-                    "streamlit",
-                    "pyarrow",
-                    "psutil",
-                ]
-            },
-            "logical_cpus": os.cpu_count(),
-            "threads": 2,
-            "ram_gb": psutil.virtual_memory().total / 1024**3,
-            "seed": SEED,
-            "features": FEATURES,
-            "memory_measure": "50 ms sampled worker process RSS across startup, fit and metrics; not fit-only allocation",
-            "repeats": 1,
-            "timeout_seconds": 900,
-            "scaler": "Frozen final model training scaler, identical for every benchmark",
-            "sampling": "Seeded permutation of all cleaned rows; nested prefixes",
-        },
-    )
-    results = []
-    for size in [50000, 100000, 250000, 500000, 1000000] + ([n] if full else []):
-        for algorithm in ["KMeans", "MiniBatchKMeans"]:
-            if size > n:
-                row = {"algorithm": algorithm, "rows": size, "status": "skipped_insufficient_rows"}
-            else:
-                row = run_worker(algorithm, size, k)
-            results.append(row)
-            print(row, flush=True)
-            pl.DataFrame(results, infer_schema_length=None).write_csv(REPORTS / "benchmarks.csv")
-    if full:
-        results.append(run_worker("MiniBatchKMeans", n, k, streaming=True))
-        pl.DataFrame(results, infer_schema_length=None).write_csv(REPORTS / "benchmarks.csv")
-        print(results[-1], flush=True)
-        write_json(
-            REPORTS / "full_decision.json",
-            {"cleaned_rows": n, "evaluations": [r for r in results if r["rows"] == n]},
-        )
-    else:
-        write_json(
-            REPORTS / "full_decision.json",
-            {"status": "not_requested", "next_command": "taxi benchmark --full"},
-        )
-    batches = []
-    for size in [100, 500, 1000, 5000, 10000]:
-        batches.append(run_worker("MiniBatchKMeans", min(100000, n), k, batch_size=size))
-        pl.DataFrame(batches, infer_schema_length=None).write_csv(REPORTS / "batch_study.csv")
-        print(batches[-1], flush=True)
+def benchmark_plots():
     for filename, xaxis in [("benchmarks", "rows"), ("batch_study", "batch_size")]:
+        import plotly.express as px
+
         df = pl.read_csv(REPORTS / f"{filename}.csv").filter(pl.col("status") == "ok").to_pandas()
         if len(df):
             df["series"] = df["algorithm"] + df["streaming"].map({True: " (streaming)", False: ""})
             px.line(df, x=xaxis, y="fit_seconds", color="series", markers=True).write_html(
                 REPORTS / f"{filename}.html", include_plotlyjs="cdn"
             )
+
+
+if __name__ == "__main__":
+    if sys.argv[1] == "prepare":
+        bundle = joblib.load(Path(sys.argv[2]) / "benchmark_preprocessing.joblib")
+        rows = build_benchmark_array(bundle)
+        write_json(
+            "artifacts/benchmark_context.json",
+            {"k": bundle["k"], "rows": rows, "features": bundle.get("features", FEATURES)},
+        )
+    elif sys.argv[1] == "plots":
+        benchmark_plots()

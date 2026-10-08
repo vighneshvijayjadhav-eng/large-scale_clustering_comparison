@@ -104,3 +104,23 @@ def test_schema_and_empty(tmp_path):
         bundle, synthetic(4).with_columns(pl.lit(0).alias("trip_distance")), "KMeans"
     )
     assert result.height == 0 and rejected.height == 4 and report["accepted_rows"] == 0
+
+
+def test_saved_custom_configuration(tmp_path):
+    features = ["duration_minutes", "trip_distance"]
+    _, metadata = fit_bundle(
+        synthetic(60), tmp_path, k=2, with_umap=False, features=features, anomaly_percentile=95
+    )
+    bundle = load_bundle(tmp_path)
+    result, _, _ = predict(bundle, synthetic(10, 8), "KMeans")
+    assert bundle["features"] == features
+    assert bundle["scaler"].n_features_in_ == 2
+    assert metadata["anomaly_percentile"] == 95
+    assert result.height == 10
+
+
+def test_null_time_and_float32_overflow():
+    _, bad, _ = validate(synthetic(1).with_columns(pl.lit(None).alias("tpep_pickup_datetime")))
+    assert bad["rejection_reason"][0] == "invalid_timestamp"
+    _, bad, _ = validate(synthetic(1).with_columns(pl.lit(1e-100).alias("trip_distance")))
+    assert bad["rejection_reason"][0] == "nonfinite_features"

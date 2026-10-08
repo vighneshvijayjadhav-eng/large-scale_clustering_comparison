@@ -43,6 +43,11 @@ Benchmark workers enforce memory limits and a 15-minute timeout each. Full runs 
 or aborted; reports preserve those outcomes. Allow additional time for initial UMAP compilation.
 Use the same dependency versions when reloading local models; regenerate after upgrades.
 
+`config/default.json` exposes the feature subset/order, cleaning thresholds and anomaly
+percentile. Pass `--config config/default.json` to both `taxi clean` and `taxi train`.
+Changing a configuration requires regenerating clean data, models and benchmarks together.
+Previous benchmark reports are archived automatically before reruns.
+
 ## Repository guide
 
 - `src/taxi/data.py`: lazy validation and feature engineering.

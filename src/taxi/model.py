@@ -20,15 +20,28 @@ def distances(model, x, labels):
     return np.linalg.norm(x - model.cluster_centers_[labels], axis=1)
 
 
-def fit_bundle(frame, out, k=4, rules=Rules(), source="synthetic", with_umap=True):
+def fit_bundle(
+    frame,
+    out,
+    k=4,
+    rules=Rules(),
+    source="synthetic",
+    with_umap=True,
+    features=FEATURES,
+    anomaly_percentile=99,
+):
+    if not features or len(set(features)) != len(features) or not set(features) <= set(FEATURES):
+        raise ValueError("Features must be a nonempty unique subset of supported features.")
+    if not 0 < anomaly_percentile < 100:
+        raise ValueError("Anomaly percentile must be strictly between 0 and 100.")
     good, _, report = validate(frame, rules)
     if good.height < max(k * 3, 15):
         raise ValueError("Too few accepted rows to fit models and projections.")
     scaler = StandardScaler()
-    x = scaler.fit_transform(matrix(good)).astype("float32")
+    x = scaler.fit_transform(matrix(good, features)).astype("float32")
     bundle = {
         "version": 1,
-        "features": FEATURES,
+        "features": list(features),
         "rules": asdict(rules),
         "scaler": scaler,
         "models": {},
@@ -44,7 +57,9 @@ def fit_bundle(frame, out, k=4, rules=Rules(), source="synthetic", with_umap=Tru
         }.items():
             labels = model.fit_predict(x)
             bundle["models"][name] = model
-            bundle["thresholds"][name] = float(np.quantile(distances(model, x, labels), 0.99))
+            bundle["thresholds"][name] = float(
+                np.quantile(distances(model, x, labels), anomaly_percentile / 100)
+            )
     rng = np.random.default_rng(SEED)
     idx = rng.choice(len(x), min(5000, len(x)), replace=False)
     if with_umap:
@@ -63,15 +78,18 @@ def fit_bundle(frame, out, k=4, rules=Rules(), source="synthetic", with_umap=Tru
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
     joblib.dump(bundle, out / "bundle.joblib")
-    joblib.dump({"scaler": scaler, "k": k}, out / "benchmark_preprocessing.joblib")
+    joblib.dump(
+        {"scaler": scaler, "k": k, "features": list(features)},
+        out / "benchmark_preprocessing.joblib",
+    )
     metadata = {
         "source": source,
         "seed": SEED,
         "k": k,
-        "features": FEATURES,
+        "features": list(features),
         "training": report,
         "projection_rows": len(idx),
-        "anomaly_percentile": 99,
+        "anomaly_percentile": anomaly_percentile,
         "rules": asdict(rules),
     }
     (out / "metadata.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
@@ -98,7 +116,13 @@ def fit_bundle(frame, out, k=4, rules=Rules(), source="synthetic", with_umap=Tru
 
 def load_bundle(path):
     bundle = joblib.load(Path(path) / "bundle.joblib")
-    if bundle.get("version") != 1 or bundle.get("features") != FEATURES:
+    features = bundle.get("features", [])
+    if (
+        bundle.get("version") != 1
+        or not features
+        or not set(features) <= set(FEATURES)
+        or len(features) != bundle["scaler"].n_features_in_
+    ):
         raise ValueError("Incompatible artifact schema. Rebuild artifacts with this version.")
     return bundle
 
@@ -109,7 +133,7 @@ def predict(bundle, frame, algorithm, chart_limit=2000):
         raise ValueError("Unknown algorithm")
     if not good.height:
         return good, bad, report
-    x = bundle["scaler"].transform(matrix(good)).astype("float32")
+    x = bundle["scaler"].transform(matrix(good, bundle["features"])).astype("float32")
     model = bundle["models"][algorithm]
     with threadpool_limits(limits=2):
         labels = model.predict(x)

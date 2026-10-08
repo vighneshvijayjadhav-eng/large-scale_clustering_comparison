@@ -22,7 +22,7 @@
     "hour_sin",
     "hour_cos"
   ],
-  "memory_measure": "50 ms sampled worker process RSS across startup, fit and metrics; not fit-only allocation",
+  "memory_measure": "50 ms sampled worker process-tree RSS across startup, fit and metrics; not fit-only allocation",
   "repeats": 1,
   "timeout_seconds": 900,
   "scaler": "Frozen final model training scaler, identical for every benchmark",

@@ -1,2 +1,14 @@
-algorithm,rows,batch_size,streaming,seed,k,feature_count,available_mb,estimated_mb,status,detail,peak_rss_mb,worker_seconds
-KMeans,50000,1000,false,42,2,6,762.82421875,267.444091796875,aborted_low_memory,Safety monitor terminated worker,5.06640625,8.042724700000235
+algorithm,rows,batch_size,streaming,seed,k,feature_count,available_mb,estimated_mb,status,fit_seconds,normalized_inertia,silhouette,metric_rows,ari_vs_kmeans,cluster_sizes,iterations,peak_rss_mb,worker_seconds,detail,source_attempt
+KMeans,50000,1000,false,42,2,6,747.5625,267.444091796875,ok,0.31536770000002434,4.31788085444332,0.4938396215438843,2000,,"[43676, 6324]",8,266.98046875,8.018971700000293,,third
+MiniBatchKMeans,50000,1000,false,42,2,6,768.1484375,260.57763671875,ok,0.068347200000062,4.905991974434509,0.2800350487232208,2000,0.10568756341000814,"[29322, 20678]",1,265.18359375,7.400977199999943,,third
+KMeans,100000,1000,false,42,2,6,769.75,278.88818359375,ok,0.5624419000000671,4.392350643284088,0.4711979329586029,2000,,"[87567, 12433]",7,282.59375,8.086756700000024,,third
+MiniBatchKMeans,100000,1000,false,42,2,6,782.15234375,265.1552734375,ok,0.07712030000038794,4.999582515918591,0.2428303360939026,2000,-0.012766115052801615,"[40755, 59245]",1,280.84375,7.541800899999998,,third
+KMeans,250000,1000,false,42,2,6,525.58984375,313.220458984375,aborted_low_memory,,,,,,,,14.9375,0.10596690000011222,Safety monitor terminated worker,fourth
+MiniBatchKMeans,250000,1000,false,42,2,6,512.859375,278.88818359375,aborted_low_memory,,,,,,,,19.375,0.24447730000019874,Safety monitor terminated worker,fourth
+KMeans,500000,1000,false,42,2,6,510.97265625,370.44091796875,skipped_memory_preflight,,,,,,,,,,Estimated working set exceeds 60% available RAM,fourth
+MiniBatchKMeans,500000,1000,false,42,2,6,510.83984375,301.7763671875,aborted_low_memory,,,,,,,,4.9140625,0.05561540000007881,Safety monitor terminated worker,fourth
+KMeans,1000000,1000,false,42,2,6,507.16015625,484.8818359375,skipped_memory_preflight,,,,,,,,,,Estimated working set exceeds 60% available RAM,fourth
+MiniBatchKMeans,1000000,1000,false,42,2,6,507.08203125,347.552734375,skipped_memory_preflight,,,,,,,,,,Estimated working set exceeds 60% available RAM,fourth
+KMeans,3241580,1000,false,42,2,6,506.875,997.9387817382812,skipped_memory_preflight,,,,,,,,,,Estimated working set exceeds 60% available RAM,fourth
+MiniBatchKMeans,3241580,1000,false,42,2,6,505.9296875,552.7755126953125,skipped_memory_preflight,,,,,,,,,,Estimated working set exceeds 60% available RAM,fourth
+MiniBatchKMeans,3241580,1000,true,42,2,6,504.34375,552.7755126953125,ok,1.2574053000003005,4.909492123299375,0.2682598829269409,2000,,"[1930906, 1310674]",325,299.07421875,9.315402300000187,,third

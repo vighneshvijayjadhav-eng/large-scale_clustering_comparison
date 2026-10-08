@@ -145,7 +145,7 @@ elif section == "Algorithm comparison":
     )
 elif section == "Anomalies":
     st.write(
-        "Distance outliers exceed the saved 99th percentile of training distances to the assigned centroid. This is a statistical flag, not evidence of fraud."
+        f"Distance outliers exceed the saved {metadata['anomaly_percentile']}th percentile of training distances to the assigned centroid. This is a statistical flag, not evidence of fraud."
     )
     sample = pl.read_parquet(root / f"sample_{algorithm}.parquet")
     scatter(sample, 2, "distance_outlier")

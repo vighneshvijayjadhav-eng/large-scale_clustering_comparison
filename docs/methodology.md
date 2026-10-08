@@ -19,8 +19,9 @@ distance >0 and <=150 miles, speed <=100 mph, fare >0 and <=1000 dollars, total 
 Missing/nonfinite amounts, malformed times and nonfinite engineered features are rejected.
 Order: timestamp, missing/nonfinite numeric input, duration, distance, charge, speed, feature.
 Counts are mutually exclusive; a row can violate additional rules. Thresholds are plausibility
-filters, not legal fare rules. Change Rules in a Python training workflow and regenerate artifacts
-to study sensitivity. Rejecting free/refunded trips changes the analyzed population.
+filters, not legal fare rules. config/default.json exposes thresholds, feature subset/order and
+anomaly percentile. Pass the same --config to clean and train, then regenerate benchmarks to
+study sensitivity. Rejecting free/refunded trips changes the analyzed population.
 
 ## Features and cluster selection
 Distance, duration, speed = distance / hours, fare per mile, sin(hour*2π/24), cos(hour*2π/24).
@@ -51,7 +52,7 @@ Benchmark data are a float32 memory-mapped standardized matrix using the frozen 
 A seeded permutation gives identical nested sample prefixes to both algorithms at 50k, 100k,
 250k, 500k, 1m and full cleaned size. Final demo model fitting is distinct from benchmark fitting.
 Fit time excludes ingestion, scaling, array selection and metric calculations. Peak RSS covers
-the whole isolated worker, sampled every 50ms, and can miss instantaneous peaks. It is not a
+the whole worker process tree, sampled every 50ms, and can miss instantaneous peaks. It is not a
 measurement of estimator-only memory. Single repetitions describe this machine, not confidence
 intervals. Two numerical threads limit oversubscription.
 

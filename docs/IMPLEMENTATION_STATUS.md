@@ -42,3 +42,18 @@ Browser requested background and collapsible panel: added city-grid gradient, da
 visible native sidebar toggle styling. Browser upload chooser automation timed out; upload
 page functionality is tested via Streamlit AppTest with actual CSV/Parquet bytes instead.
 The preview was stopped temporarily to conserve RAM for real training and benchmarks.
+
+Milestone 2 commit: 4f2ec63. Remote main advanced with AGENTS.md and CODEX_MASTER_PROMPT.md;
+both were inspected and merged intact in 3ecacc9. Instructions agree with requested scope.
+
+Milestone 3: all requested sizes and batch sizes evaluated. Completed paired 50k/100k fits
+and full 3,241,580-row incremental MiniBatch. Remaining ordinary 250k/500k/1m fits and batch
+study could not complete within available RAM; full KMeans explicitly skipped by preflight.
+See docs/results.md and raw attempt CSVs. Fixed Windows launcher-only memory monitoring and
+isolated preparation to reduce coordinator memory. No resource limits were relaxed.
+
+Integration: 17 tests passed before the final null-time/float32-overflow test was added.
+scripts/smoke_saved.py passed all four combinations of both algorithms and CSV/Parquet on
+30 real holdout records excluded from training. All records had valid 2D and 3D projections,
+stable labels across file formats, preserved source row positions, and full CSV exports.
+Features/rules/anomaly threshold are configurable, persisted and reused during inference.

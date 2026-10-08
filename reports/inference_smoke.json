@@ -1,0 +1,30 @@
+{
+  "status": "passed",
+  "source": "30 hash-ranked cleaned records immediately after the training prefix; excluded from fitting",
+  "checks": [
+    {
+      "algorithm": "KMeans",
+      "format": "csv",
+      "accepted": 30,
+      "projected_2d_3d": 30
+    },
+    {
+      "algorithm": "KMeans",
+      "format": "parquet",
+      "accepted": 30,
+      "projected_2d_3d": 30
+    },
+    {
+      "algorithm": "MiniBatchKMeans",
+      "format": "csv",
+      "accepted": 30,
+      "projected_2d_3d": 30
+    },
+    {
+      "algorithm": "MiniBatchKMeans",
+      "format": "parquet",
+      "accepted": 30,
+      "projected_2d_3d": 30
+    }
+  ]
+}

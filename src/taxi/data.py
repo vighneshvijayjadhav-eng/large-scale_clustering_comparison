@@ -64,7 +64,7 @@ def prepare(frame, rules=Rules()):
                     "Timezone-aware timestamps are unsupported; use NYC local naive time."
                 )
             expr = pl.col(name).cast(pl.Datetime("us"))
-        elif dtype == pl.Date:
+        elif dtype in (pl.Date, pl.Null):
             expr = pl.col(name).cast(pl.Datetime("us"))
         else:
             raise ValueError(
@@ -105,7 +105,11 @@ def prepare(frame, rules=Rules()):
         .then(pl.lit("charge_out_of_range"))
         .when(pl.col("speed_mph") > rules.max_speed)
         .then(pl.lit("speed_out_of_range"))
-        .when(pl.any_horizontal(~pl.col(FEATURES).is_finite() | pl.col(FEATURES).is_null()))
+        .when(
+            pl.any_horizontal(
+                ~pl.col(FEATURES).cast(pl.Float32).is_finite() | pl.col(FEATURES).is_null()
+            )
+        )
         .then(pl.lit("nonfinite_features"))
         .otherwise(pl.lit(None, dtype=pl.String))
         .alias("rejection_reason")
@@ -132,5 +136,5 @@ def validate(frame, rules=Rules()):
     )
 
 
-def matrix(frame):
-    return frame.select(FEATURES).to_numpy().astype("float32")
+def matrix(frame, features=FEATURES):
+    return frame.select(features).to_numpy().astype("float32")

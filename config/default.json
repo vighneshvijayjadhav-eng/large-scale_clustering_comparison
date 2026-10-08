@@ -1,0 +1,5 @@
+{
+  "features": ["trip_distance", "duration_minutes", "speed_mph", "fare_per_mile", "hour_sin", "hour_cos"],
+  "rules": {"min_minutes": 1, "max_minutes": 180, "max_distance": 150, "max_speed": 100, "max_fare": 1000, "max_total": 1500},
+  "anomaly_percentile": 99
+}

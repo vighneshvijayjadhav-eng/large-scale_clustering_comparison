@@ -1,0 +1,14 @@
+algorithm,rows,batch_size,streaming,seed,k,feature_count,available_mb,estimated_mb,status,detail,peak_rss_mb,worker_seconds
+KMeans,50000,1000,false,42,2,6,529.1484375,267.444091796875,aborted_low_memory,Safety monitor terminated worker,30.875,0.942394400000012
+MiniBatchKMeans,50000,1000,false,42,2,6,537.0,260.57763671875,aborted_low_memory,Safety monitor terminated worker,33.484375,1.1206967000002805
+KMeans,100000,1000,false,42,2,6,518.75,278.88818359375,aborted_low_memory,Safety monitor terminated worker,18.44140625,0.24481909999985874
+MiniBatchKMeans,100000,1000,false,42,2,6,518.37109375,265.1552734375,aborted_low_memory,Safety monitor terminated worker,18.55859375,0.2973015999996278
+KMeans,250000,1000,false,42,2,6,525.58984375,313.220458984375,aborted_low_memory,Safety monitor terminated worker,14.9375,0.10596690000011222
+MiniBatchKMeans,250000,1000,false,42,2,6,512.859375,278.88818359375,aborted_low_memory,Safety monitor terminated worker,19.375,0.24447730000019874
+KMeans,500000,1000,false,42,2,6,510.97265625,370.44091796875,skipped_memory_preflight,Estimated working set exceeds 60% available RAM,,
+MiniBatchKMeans,500000,1000,false,42,2,6,510.83984375,301.7763671875,aborted_low_memory,Safety monitor terminated worker,4.9140625,0.05561540000007881
+KMeans,1000000,1000,false,42,2,6,507.16015625,484.8818359375,skipped_memory_preflight,Estimated working set exceeds 60% available RAM,,
+MiniBatchKMeans,1000000,1000,false,42,2,6,507.08203125,347.552734375,skipped_memory_preflight,Estimated working set exceeds 60% available RAM,,
+KMeans,3241580,1000,false,42,2,6,506.875,997.9387817382812,skipped_memory_preflight,Estimated working set exceeds 60% available RAM,,
+MiniBatchKMeans,3241580,1000,false,42,2,6,505.9296875,552.7755126953125,skipped_memory_preflight,Estimated working set exceeds 60% available RAM,,
+MiniBatchKMeans,3241580,1000,true,42,2,6,504.2734375,552.7755126953125,aborted_low_memory,Safety monitor terminated worker,4.9296875,0.05230299999993804

@@ -10,7 +10,7 @@ from sklearn.cluster import KMeans, MiniBatchKMeans
 from sklearn.metrics import adjusted_rand_score, silhouette_score
 from threadpoolctl import threadpool_limits
 
-from taxi.model import SEED
+SEED = 42
 
 
 def run(algorithm, rows, k, batch_size, streaming):

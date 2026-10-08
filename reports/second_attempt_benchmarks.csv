@@ -1,0 +1,14 @@
+algorithm,rows,batch_size,streaming,seed,k,feature_count,available_mb,estimated_mb,status,detail,peak_rss_mb,worker_seconds
+KMeans,50000,1000,false,42,2,6,461.66015625,267.444091796875,aborted_low_memory,Safety monitor terminated worker,4.4453125,0.044087300000228424
+MiniBatchKMeans,50000,1000,false,42,2,6,463.359375,260.57763671875,aborted_low_memory,Safety monitor terminated worker,4.93359375,0.048205200000211335
+KMeans,100000,1000,false,42,2,6,456.1640625,278.88818359375,skipped_memory_preflight,Estimated working set exceeds 60% available RAM,,
+MiniBatchKMeans,100000,1000,false,42,2,6,455.4609375,265.1552734375,aborted_low_memory,Safety monitor terminated worker,4.93359375,0.04813169999988531
+KMeans,250000,1000,false,42,2,6,458.44140625,313.220458984375,skipped_memory_preflight,Estimated working set exceeds 60% available RAM,,
+MiniBatchKMeans,250000,1000,false,42,2,6,458.28515625,278.88818359375,skipped_memory_preflight,Estimated working set exceeds 60% available RAM,,
+KMeans,500000,1000,false,42,2,6,458.28515625,370.44091796875,skipped_memory_preflight,Estimated working set exceeds 60% available RAM,,
+MiniBatchKMeans,500000,1000,false,42,2,6,458.28515625,301.7763671875,skipped_memory_preflight,Estimated working set exceeds 60% available RAM,,
+KMeans,1000000,1000,false,42,2,6,458.28515625,484.8818359375,skipped_memory_preflight,Estimated working set exceeds 60% available RAM,,
+MiniBatchKMeans,1000000,1000,false,42,2,6,458.28515625,347.552734375,skipped_memory_preflight,Estimated working set exceeds 60% available RAM,,
+KMeans,3241580,1000,false,42,2,6,458.23046875,997.9387817382812,skipped_memory_preflight,Estimated working set exceeds 60% available RAM,,
+MiniBatchKMeans,3241580,1000,false,42,2,6,458.23046875,552.7755126953125,skipped_memory_preflight,Estimated working set exceeds 60% available RAM,,
+MiniBatchKMeans,3241580,1000,true,42,2,6,458.23046875,552.7755126953125,aborted_low_memory,Safety monitor terminated worker,4.9296875,0.04914700000017547
