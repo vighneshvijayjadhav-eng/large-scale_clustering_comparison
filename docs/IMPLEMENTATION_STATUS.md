@@ -82,3 +82,13 @@ identical in tests, and mismatched Colab report fingerprints/environments are re
 Real 3D UMAP was visually verified with rotation controls and point hover in the browser.
 Automatic approval review initially blocked an elevated command due to account usage limits,
 not a safety finding; workspace-only edits and checks continued.
+
+Colab fallback committed and pushed as 9283f9b; origin/main SHA verified exactly.
+Approval review subsequently became available. Standard final commands then passed:
+`python -m pytest -q` — 21 passed in 20.82s; `ruff check .` — passed;
+`ruff format --check .` — 26 files already formatted; `git diff --check` — passed.
+Working tree was clean after that push. The Colab CSV import control and existing local
+comparison charts were also verified in the live browser. GitHub Actions execution remains
+unverified: gh lacks API authentication and the unauthenticated API connection was refused.
+Remaining empirical limitation: ordinary 250k–1m/batch-size measurements need more available
+RAM, and Colab has not been executed. The notebook provides the reproducible fallback.
