@@ -17,4 +17,13 @@ Disk free: approximately 184 GB. CIM memory query denied; use psutil memory pref
 - Final verification includes pytest, Ruff, Streamlit startup, git diff check and remote verification.
 
 ## Milestones
-Bootstrap in progress. Subsequent outcomes will be recorded only after execution.
+Bootstrap committed as 733882f. Python 3.12.13 installed in .venv; dependencies installed.
+Milestone 1: validation, shared scaler, both models, persistence, upload inference and UI implemented.
+11 tests passed (including Streamlit AppTest sections); Ruff lint and format passed.
+Synthetic demo generated: 300 accepted training records, saved 2D and 3D reducers.
+Unseen 30-row Parquet inference with saved UMAP transform passed; all 30 rows projected.
+Streamlit started successfully on localhost:8501 and synthetic overview rendered in browser.
+Initial sandbox-only test attempt had 8 passes/2 temp-directory permission errors; rerun with
+normal temp access passed. Initial Ruff inherited external settings; explicit project rules added.
+No push yet. Real source download completed; empirical processing follows.
+Memory snapshot: 6,323,187,712 bytes usable RAM, only 386,805,760 available during parallel imports.
