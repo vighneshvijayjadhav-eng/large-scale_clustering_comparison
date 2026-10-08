@@ -1,9 +1,5 @@
 {
   "platform": "Windows-11-10.0.26200-SP0",
-  "environment": "local",
-  "experiment_id": "d175076db1f530ffdf80baefc9933f06c136aaf7ed7577a548ef807ced11471a",
-  "git_commit": "341b5daa45c0dcdfbdbaa86f87644b914e11f954",
-  "started_utc": "20261008T115845208083Z",
   "python": "3.12.13 (main, Jul 18 2026, 17:08:38) [MSC v.1944 64 bit (AMD64)]",
   "packages": {
     "numpy": "2.5.3",
@@ -18,15 +14,6 @@
   "threads": 2,
   "ram_gb": 5.888927459716797,
   "seed": 42,
-  "k": 3,
-  "estimator_parameters": {
-    "n_init": 10,
-    "max_iter": 300,
-    "minibatch_default_batch_size": 1000,
-    "streaming_block_rows": 10000,
-    "streaming_passes": 1,
-    "silhouette_sample_rows": 2000
-  },
   "features": [
     "trip_distance",
     "duration_minutes",
@@ -39,5 +26,8 @@
   "repeats": 1,
   "timeout_seconds": 900,
   "scaler": "Frozen final model training scaler, identical for every benchmark",
-  "sampling": "Seeded permutation of all cleaned rows; nested prefixes"
+  "sampling": "Seeded permutation of all cleaned rows; nested prefixes",
+  "environment": "local",
+  "experiment_id": "c56a94397cbeff1b80aec1184b3415890c520068c93edf1b8415b88a7cdc5d65",
+  "k": 2
 }

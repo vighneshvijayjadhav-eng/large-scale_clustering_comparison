@@ -29,11 +29,26 @@ Location IDs are excluded because their integer numbering is not a meaningful Eu
 StandardScaler is fitted once on the final model's bounded training sample. No log transform or
 outlier winsorization is applied: unusual but valid trips can strongly influence K-Means.
 
-A deterministic row-index hash selects up to 20,000 records for k=2..8. Both elbow and silhouette
-are saved. Selection uses maximum silhouette on 2,000 fixed sampled records. This transparent
-rule can prefer coarse clusters; it is not proof of a uniquely correct k. Final models fit a
-separate explicitly documented training size (default 100,000). Selection and training overlap;
-these are descriptive models, not held-out predictive accuracy estimates.
+A deterministic row-index hash selects 20,000 records for K=2..10. The selection sample has
+its own fitted StandardScaler; every candidate sees exactly the same matrix. Silhouette uses
+one fixed NumPy seed-42 subset of 2,000 records. Initialization stability is the full-sample ARI
+between n_init=10 fits with seeds 42 and 43. Candidate means and sizes are saved.
+
+The revised rule was declared in docs/REDESIGN_AUDIT.md before executing this analysis:
+require every cluster to cover at least 0.5% of the sample, silhouette >=0.25, and stability
+ARI >=0.80. Among eligible candidates, maximize distance below the normalized endpoint chord
+of the inertia curve (1 - normalized K - normalized inertia); ties prefer the smaller K.
+No eligible candidate raises an error rather than selecting a silent default. These practical
+thresholds seek broad patterns; they are not universal statistical significance thresholds.
+
+K=3 is selected. K=2 has the highest silhouette but is a coarser split. K=4 introduces a tiny
+41-record group with mean distance 0.012 miles and fare/mile $1,861. Keeping this in anomaly
+analysis is more useful for this project's broad-pattern goal. K=3 separates two short-trip
+pickup-time profiles and a longer-trip group. The circular hour mean describes timing, not a
+geographic or passenger-purpose label. See docs/model_selection.md for threshold sensitivity.
+
+Final models fit the same 100,000 training records, with one shared final StandardScaler.
+Selection and training overlap; these descriptive results are not held-out prediction scores.
 
 Both estimators use k, seed=42, n_init=10, max_iter=300 and the same standardized matrix.
 MiniBatch defaults to batch_size=1000. IDs are arbitrary; semantic descriptions must refer to
@@ -81,3 +96,10 @@ sample size, status and environment are exported. A canonical JSON fingerprint i
 ending differences. Imports with a different fingerprint, seed, k or feature count are rejected.
 No Colab results are prefilled. Compare algorithms within the same runtime; cross-machine
 timing differences also reflect hardware and dependency versions.
+
+## Dashboard population labels
+The overview distinguishes raw, cleaned, and model-training counts. Exact anomaly counts and
+downloads cover the 100,000-row model-training population, not all cleaned trips. Reference
+plots use 5,000 rows; prediction exports retain every accepted upload row. Anomaly ratio is
+centroid distance divided by the saved threshold (1 is the boundary), not a probability.
+Cluster colors are categorical and stable within each model, never an alignment across models.

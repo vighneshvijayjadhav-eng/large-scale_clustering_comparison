@@ -1,0 +1,23 @@
+{
+  "source_page": "https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page",
+  "url": "https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2025-01.parquet",
+  "sha256": "9af277e4c0d3f9deb30644da822981e1e7df6af58313170fd3aa8a474485488a",
+  "bytes": 59158238,
+  "raw_rows": 3475226,
+  "accepted_rows": 3241580,
+  "rejected_rows": 233646,
+  "reasons": {
+    "charge_out_of_range": 127550,
+    "distance_out_of_range": 64474,
+    "duration_out_of_range": 41488,
+    "speed_out_of_range": 134
+  },
+  "rules": {
+    "min_minutes": 1,
+    "max_minutes": 180,
+    "max_distance": 150,
+    "max_speed": 100,
+    "max_fare": 1000,
+    "max_total": 1500
+  }
+}

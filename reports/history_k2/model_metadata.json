@@ -1,0 +1,37 @@
+{
+  "source": "https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2025-01.parquet",
+  "seed": 42,
+  "k": 2,
+  "features": [
+    "trip_distance",
+    "duration_minutes",
+    "speed_mph",
+    "fare_per_mile",
+    "hour_sin",
+    "hour_cos"
+  ],
+  "training": {
+    "raw_rows": 100000,
+    "accepted_rows": 100000,
+    "rejected_rows": 0,
+    "reasons": {},
+    "rules": {
+      "min_minutes": 1,
+      "max_minutes": 180,
+      "max_distance": 150,
+      "max_speed": 100,
+      "max_fare": 1000,
+      "max_total": 1500
+    }
+  },
+  "projection_rows": 5000,
+  "anomaly_percentile": 99,
+  "rules": {
+    "min_minutes": 1,
+    "max_minutes": 180,
+    "max_distance": 150,
+    "max_speed": 100,
+    "max_fare": 1000,
+    "max_total": 1500
+  }
+}

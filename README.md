@@ -87,11 +87,35 @@ Expand-Archive "$HOME\Downloads\colab_results.zip" -DestinationPath .\reports\co
 .\.venv\Scripts\streamlit run app.py
 ```
 
-**Algorithm comparison** automatically loads the Colab CSV alongside local results. Alternatively
-use **Optional Colab benchmark CSV** there. A frozen-experiment fingerprint prevents combining
+**Algorithm Comparison** automatically loads the Colab CSV alongside local results. Alternatively
+use **Import Colab benchmark CSV** there. A frozen-experiment fingerprint prevents combining
 different configurations. Curves include execution environment; compare algorithms within a
 runtime, since cross-machine time reflects hardware differences. CSV/JSON, runtime details,
 provenance and HTML plots are exported; datasets/models stay excluded.
 
 Commit only actual small results after execution. **No Colab results have been run or claimed
 in this delivery.** Notebook validity, scaler restoration and report import are tested locally.
+
+## Dashboard navigation
+
+1. **Overview**: source/cleaned/training counts, K, measured pattern summaries and model status.
+2. **Cluster Discovery**: cluster filter, distinct colors, 2D/3D UMAP tabs, feature bars and centroids.
+3. **Algorithm Comparison**: actual runtime/memory/quality, batch sizes, and **Cluster Selection Analysis**.
+4. **Anomaly Explorer**: training-population counts, severity/cluster filters and downloadable outliers.
+5. **Predict New Trips**: validated CSV/Parquet, saved model prediction, diamond-marked uploaded points and CSV export.
+6. **Methodology / Experiment Details**: features, configurations, resources and reproducibility.
+
+The violet/teal dark theme uses compact charts and native collapsible navigation. Technical
+metadata is expandable. No training runs during navigation or upload. Cached predictions are
+invalidated when the model bundle changes.
+
+**Current frozen K=3** comes from a reproducible K=2..10 elbow, silhouette, size and initialization
+stability review. The previous max-silhouette-only K=2 decision and measurements are preserved
+in `reports/history_k2/`; they are not mixed with the new K=3 benchmark series.
+See [selection rationale and sensitivity](docs/model_selection.md).
+
+To check real CSV/Parquet holdouts and both saved UMAP transformations after training:
+
+```powershell
+.\.venv\Scripts\python scripts/smoke_saved.py
+```

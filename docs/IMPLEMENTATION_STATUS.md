@@ -92,3 +92,43 @@ comparison charts were also verified in the live browser. GitHub Actions executi
 unverified: gh lacks API authentication and the unauthenticated API connection was refused.
 Remaining empirical limitation: ordinary 250k–1m/batch-size measurements need more available
 RAM, and Colab has not been executed. The notebook provides the reproducible fallback.
+## Redesign and K=3 revision — 2026-10-08
+
+Completed the audit in REDESIGN_AUDIT.md and preserved the prior K=2 artifacts locally and
+small reports under reports/history_k2. Replaced maximum-silhouette-only selection with a
+predeclared K=2..10 elbow/size/stability procedure. Actual 20k-row analysis selected K=3;
+threshold sensitivity and rare fare-per-mile groups are documented in model_selection.md.
+Both models were refitted on the same 100k records; saved 2D/3D UMAP, reference assignments,
+profiles, inverse-scaled centroids and exact training anomaly records were regenerated.
+
+Six-page dashboard implemented with violet/teal/amber categorical colors, compact KPIs,
+collapsible sidebar, tabs, cluster/severity filters, metadata expanders and cached predictions.
+Downloads retain all accepted rows and provide profile descriptions and threshold-relative
+anomaly scores. Current benchmark fingerprints keep earlier K=2 evidence out of current charts.
+
+Executed the K=3 benchmark sweep: both algorithms passed 50k/100k/250k/500k/1m; both ordinary
+and streamed MiniBatch passed all 3,241,580 cleaned rows. All five batch-size runs passed on
+100k. Full ordinary K-Means was evaluated and skipped safely by memory preflight (997.94 MiB
+estimate, 1,111.70 MiB available, 60% limit). No Colab run is claimed.
+
+Validation executed: `python -m pytest -q` — 25 passed in 27.76s; `ruff check .` passed;
+`ruff format --check .` — 31 files formatted; `git diff --check` passed. Real holdout smoke
+passed both algorithms, CSV/Parquet and saved 2D/3D transformations for 30 disjoint records.
+Streamlit launched on port 8501. Browser verified overview, distinct cluster colors, sidebar
+expansion, 3D projection and annotated selection charts. Screenshot captures are actual UI.
+The first real browser upload is being checked separately; initial saved UMAP loading and
+transform compilation are slow under memory pressure. Synthetic UI upload paths passed tests.
+
+Automatic approval review temporarily hit an account usage limit; later attempts succeeded.
+Windows sandbox UMAP pipe restrictions required elevated execution. Large files remain ignored.
+These limitations concern execution access and memory, not fabricated or substituted results.
+
+Final browser upload completed with 30 accepted / 0 rejected real holdout rows. The downloaded
+CSV was read back and verified: 30 original row positions, cluster descriptions, anomaly ratio
+and both UMAP coordinate sets. 3D switching was exercised. Browser file-chooser/download tool
+calls took unusually long; no browser latency benchmark is claimed. Warm-up can also be slow
+with low free memory. The functional smoke and offline tests are the reproducible checks.
+
+Dashboard/model-selection milestone committed as 07a3b0a. A staged diff check exposed unusual
+CR-only line endings in charts.py after that commit; normalized to LF in the delivery follow-up.
+Lint and working-tree diff checks pass after correction; no history rewrite was used.
