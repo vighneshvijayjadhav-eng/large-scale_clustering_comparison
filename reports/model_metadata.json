@@ -1,7 +1,7 @@
 {
   "source": "https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2025-01.parquet",
   "seed": 42,
-  "k": 2,
+  "k": 3,
   "features": [
     "trip_distance",
     "duration_minutes",
@@ -33,5 +33,37 @@
     "max_speed": 100,
     "max_fare": 1000,
     "max_total": 1500
-  }
+  },
+  "anomalies": {
+    "KMeans": {
+      "count": 1000,
+      "population_rows": 100000,
+      "threshold": 4.023439884185791
+    },
+    "MiniBatchKMeans": {
+      "count": 1000,
+      "population_rows": 100000,
+      "threshold": 4.032614707946777
+    }
+  },
+  "selection": {
+    "k": 3,
+    "rule": "Quality-gated normalized inertia elbow",
+    "rationale": "K=3 maximizes the normalized elbow strength among eligible K values [2, 3]. Eligibility requires every cluster >=0.5% of the sample, silhouette >=0.25 and initialization stability ARI >=0.80. K=2 has the highest silhouette; silhouette alone does not determine this choice. Selected silhouette 0.336, smallest cluster 11.58%, stability ARI 1.000.",
+    "selection_rows": 20000,
+    "silhouette_rows": 2000,
+    "seed": 42,
+    "stability_seed": 43,
+    "eligible_k": [
+      2,
+      3
+    ],
+    "gates": {
+      "minimum_share": 0.005,
+      "minimum_silhouette": 0.25,
+      "minimum_stability_ari": 0.8
+    },
+    "caveat": "A practical broad-pattern resolution, not a proven unique optimum. Means and rare-cluster sensitivity are reported for review."
+  },
+  "experiment_id": "d175076db1f530ffdf80baefc9933f06c136aaf7ed7577a548ef807ced11471a"
 }

@@ -18,7 +18,13 @@ def test_app_sections(tmp_path, monkeypatch):
     app.run()
     app.sidebar.text_input[0].set_value(str(models)).run()
     assert not app.exception
-    for section in ["Discovered clusters", "Anomalies", "Predict uploaded trips"]:
+    for section in [
+        "Cluster Discovery",
+        "Anomaly Explorer",
+        "Predict New Trips",
+        "Algorithm Comparison",
+        "Methodology / Experiment Details",
+    ]:
         app.sidebar.radio[0].set_value(section).run()
         assert not app.exception
 
@@ -44,7 +50,7 @@ def test_upload_ui_exports(tmp_path, monkeypatch, suffix):
     monkeypatch.setattr(st, "file_uploader", upload)
     app = AppTest.from_file(str(Path(__file__).parents[1] / "app.py"), default_timeout=30).run()
     app.sidebar.text_input[0].set_value(str(models)).run()
-    app.sidebar.radio[0].set_value("Predict uploaded trips").run()
+    app.sidebar.radio[0].set_value("Predict New Trips").run()
     assert not app.exception
     assert app.dataframe[0].value.shape[0] == 12
     assert any(

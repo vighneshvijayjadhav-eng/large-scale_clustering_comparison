@@ -111,6 +111,7 @@ def fit_bundle(
     for name in bundle["models"]:
         predictions, _, _ = predict(bundle, sample, name, chart_limit=5000)
         predictions.write_parquet(out / f"sample_{name}.parquet")
+    summarize_training(bundle, good, out, metadata)
     return bundle, metadata
 
 
@@ -141,15 +142,44 @@ def predict(bundle, frame, algorithm, chart_limit=2000):
     good = good.with_columns(
         pl.Series("cluster", labels),
         pl.Series("centroid_distance", distance),
+        pl.Series("anomaly_ratio", distance / max(bundle["thresholds"][algorithm], 1e-12)),
         pl.Series("distance_outlier", distance > bundle["thresholds"][algorithm]),
     )
     idx = np.sort(
         np.random.default_rng(SEED).choice(len(x), min(chart_limit, len(x)), replace=False)
     )
     projected = {"row_id": good["row_id"][idx]}
-    for dim, reducer in bundle["reducers"].items():
+    for dim, reducer in bundle["reducers"].items() if len(idx) else []:
         coordinates = reducer.transform(x[idx])
         for axis in range(dim):
             projected[f"umap{dim}_{axis + 1}"] = coordinates[:, axis]
     good = good.join(pl.DataFrame(projected), on="row_id", how="left", maintain_order="left")
     return good, bad, report
+
+
+def summarize_training(bundle, good, out, metadata):
+    """Exact training-population flags; retain only flagged rows for bounded UI loading."""
+    out = Path(out)
+    x = bundle["scaler"].transform(matrix(good, bundle["features"])).astype("float32")
+    metadata["anomalies"] = {}
+    for name, model in bundle["models"].items():
+        with threadpool_limits(limits=2):
+            labels = model.predict(x)
+        distance = distances(model, x, labels)
+        threshold = bundle["thresholds"][name]
+        flagged = good.with_columns(
+            pl.Series("cluster", labels),
+            pl.Series("centroid_distance", distance),
+            pl.Series("anomaly_ratio", distance / max(threshold, 1e-12)),
+        ).filter(pl.col("centroid_distance") > threshold)
+        flagged.write_parquet(out / f"anomalies_{name}.parquet")
+        metadata["anomalies"][name] = {
+            "count": flagged.height,
+            "population_rows": good.height,
+            "threshold": threshold,
+        }
+        centroids = bundle["scaler"].inverse_transform(model.cluster_centers_)
+        pl.DataFrame(centroids, schema=bundle["features"], orient="row").with_row_index(
+            "cluster"
+        ).write_csv(out / f"centroids_{name}.csv")
+    (out / "metadata.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")

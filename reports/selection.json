@@ -1,7 +1,19 @@
 {
-  "k": 2,
-  "rule": "Maximum sampled silhouette over k=2..8; elbow shown as supporting evidence, not a forced visual optimum.",
+  "k": 3,
+  "rule": "Quality-gated normalized inertia elbow",
+  "rationale": "K=3 maximizes the normalized elbow strength among eligible K values [2, 3]. Eligibility requires every cluster >=0.5% of the sample, silhouette >=0.25 and initialization stability ARI >=0.80. K=2 has the highest silhouette; silhouette alone does not determine this choice. Selected silhouette 0.336, smallest cluster 11.58%, stability ARI 1.000.",
   "selection_rows": 20000,
   "silhouette_rows": 2000,
-  "seed": 42
+  "seed": 42,
+  "stability_seed": 43,
+  "eligible_k": [
+    2,
+    3
+  ],
+  "gates": {
+    "minimum_share": 0.005,
+    "minimum_silhouette": 0.25,
+    "minimum_stability_ari": 0.8
+  },
+  "caveat": "A practical broad-pattern resolution, not a proven unique optimum. Means and rare-cluster sensitivity are reported for review."
 }

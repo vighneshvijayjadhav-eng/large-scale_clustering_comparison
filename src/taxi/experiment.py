@@ -93,12 +93,8 @@ def sample_rows(lf, n):
 
 
 def train_real(lf, out, rows, config=None):
-    import plotly.express as px
-    from sklearn.cluster import KMeans
-    from sklearn.metrics import silhouette_score
-    from sklearn.preprocessing import StandardScaler
-    from threadpoolctl import threadpool_limits
     from taxi.model import fit_bundle
+    from taxi.selection import analyze
 
     config = config or {"features": FEATURES, "rules": asdict(Rules()), "anomaly_percentile": 99}
     provenance = json.loads((REPORTS / "provenance.json").read_text())
@@ -107,42 +103,8 @@ def train_real(lf, out, rows, config=None):
             "Cleaning rules differ. Rerun clean with the same --config before training."
         )
     sample = sample_rows(lf, rows)
-    selection = sample_rows(lf, min(20000, rows))
-    x = StandardScaler().fit_transform(matrix(selection, config["features"])).astype("float32")
-    scores = []
-    with threadpool_limits(limits=2):
-        for k in range(2, 9):
-            model = KMeans(n_clusters=k, n_init=10, random_state=SEED).fit(x)
-            score = float(
-                silhouette_score(x, model.labels_, sample_size=min(2000, len(x)), random_state=SEED)
-            )
-            scores.append(
-                {
-                    "k": k,
-                    "rows": len(x),
-                    "normalized_inertia": float(model.inertia_ / len(x)),
-                    "silhouette": score,
-                }
-            )
-            print(scores[-1], flush=True)
-    chosen = max(scores, key=lambda r: r["silhouette"])["k"]
-    REPORTS.mkdir(exist_ok=True)
-    table = pl.DataFrame(scores)
-    table.write_csv(REPORTS / "k_selection.csv")
-    for metric in ["normalized_inertia", "silhouette"]:
-        px.line(table.to_pandas(), x="k", y=metric, markers=True).write_html(
-            REPORTS / f"k_{metric}.html", include_plotlyjs="cdn"
-        )
-    write_json(
-        REPORTS / "selection.json",
-        {
-            "k": chosen,
-            "rule": "Maximum sampled silhouette over k=2..8; elbow shown as supporting evidence, not a forced visual optimum.",
-            "selection_rows": len(x),
-            "silhouette_rows": min(2000, len(x)),
-            "seed": SEED,
-        },
-    )
+    selection = analyze(sample_rows(lf, min(20000, rows)), config["features"], REPORTS)
+    chosen = selection["k"]
     bundle, metadata = fit_bundle(
         sample,
         out,
@@ -155,7 +117,7 @@ def train_real(lf, out, rows, config=None):
     write_json(REPORTS / "model_metadata.json", metadata)
     from taxi.frozen import export_snapshot
 
-    export_snapshot(
+    snapshot = export_snapshot(
         bundle["scaler"],
         config["features"],
         chosen,
@@ -163,6 +125,12 @@ def train_real(lf, out, rows, config=None):
         provenance,
         REPORTS / "frozen_preprocessing.json",
     )
+    metadata["selection"] = selection
+    metadata["experiment_id"] = hashlib.sha256(
+        json.dumps(snapshot, sort_keys=True, separators=(",", ":")).encode()
+    ).hexdigest()
+    write_json(Path(out) / "metadata.json", metadata)
+    write_json(REPORTS / "model_metadata.json", metadata)
     pl.read_csv(Path(out) / "profiles.csv").write_csv(REPORTS / "profiles.csv")
     print(json.dumps(metadata, indent=2), flush=True)
 
