@@ -1,0 +1,7 @@
+{
+  "k": 2,
+  "rule": "Maximum sampled silhouette over k=2..8; elbow shown as supporting evidence, not a forced visual optimum.",
+  "selection_rows": 20000,
+  "silhouette_rows": 2000,
+  "seed": 42
+}

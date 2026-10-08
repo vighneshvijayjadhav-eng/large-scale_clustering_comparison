@@ -63,6 +63,7 @@ def fit_bundle(frame, out, k=4, rules=Rules(), source="synthetic", with_umap=Tru
     out = Path(out)
     out.mkdir(parents=True, exist_ok=True)
     joblib.dump(bundle, out / "bundle.joblib")
+    joblib.dump({"scaler": scaler, "k": k}, out / "benchmark_preprocessing.joblib")
     metadata = {
         "source": source,
         "seed": SEED,

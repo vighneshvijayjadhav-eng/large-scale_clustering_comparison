@@ -63,3 +63,44 @@ def test_inference_reload_upload(tmp_path, suffix):
 def test_feature_order():
     good, _, _ = validate(synthetic(20))
     assert np.array_equal(matrix(good), matrix(good.select(reversed(good.columns))))
+
+
+def test_predict_never_fits_and_preserves_rejected_identity(tmp_path, monkeypatch):
+    bundle, _ = fit_bundle(synthetic(60), tmp_path, k=3, with_umap=False)
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError("Inference must not fit")
+
+    class Reducer:
+        def transform(self, x):
+            return x[:, :3]
+
+        fit = forbidden
+        fit_transform = forbidden
+
+    bundle["reducers"] = {3: Reducer()}
+    monkeypatch.setattr(bundle["scaler"], "fit", forbidden)
+    for model in bundle["models"].values():
+        monkeypatch.setattr(model, "fit", forbidden)
+        monkeypatch.setattr(model, "fit_predict", forbidden)
+    unseen = synthetic(12, 15).with_columns(
+        pl.when(pl.int_range(pl.len()) == 3)
+        .then(0)
+        .otherwise(pl.col("trip_distance"))
+        .alias("trip_distance")
+    )
+    result, rejected, _ = predict(bundle, unseen, "MiniBatchKMeans", chart_limit=5)
+    assert result["row_id"].to_list() == [i for i in range(12) if i != 3]
+    assert rejected["row_id"].to_list() == [3]
+    assert result.height == 11
+    assert result["umap3_1"].null_count() == 6
+
+
+def test_schema_and_empty(tmp_path):
+    with pytest.raises(ValueError, match="Schema mismatch"):
+        validate(synthetic(10).with_columns(pl.lit(123).alias("tpep_pickup_datetime")))
+    bundle, _ = fit_bundle(synthetic(30), tmp_path, k=2, with_umap=False)
+    result, rejected, report = predict(
+        bundle, synthetic(4).with_columns(pl.lit(0).alias("trip_distance")), "KMeans"
+    )
+    assert result.height == 0 and rejected.height == 4 and report["accepted_rows"] == 0

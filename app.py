@@ -9,7 +9,29 @@ import streamlit as st
 
 from taxi.model import load_bundle, predict
 
-st.set_page_config(page_title="Taxi Pattern Lab", page_icon="🚕", layout="wide")
+st.set_page_config(
+    page_title="Taxi Pattern Lab", page_icon="🚕", layout="wide", initial_sidebar_state="expanded"
+)
+st.html("""
+<style>
+[data-testid="stAppViewContainer"] {
+  background:
+    radial-gradient(ellipse at 90% 0%, rgba(232,163,23,.14), transparent 44%),
+    radial-gradient(ellipse at 5% 80%, rgba(35,126,160,.13), transparent 48%),
+    linear-gradient(rgba(124,151,179,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(124,151,179,.035) 1px, transparent 1px), #0e1525;
+  background-size: auto, auto, 48px 48px, 48px 48px, auto;
+}
+[data-testid="stSidebar"] { background: rgba(18,29,47,.97); border-right: 1px solid #2b3a50; }
+[data-testid="stSidebarCollapseButton"], [data-testid="stSidebarCollapsedControl"] {
+  visibility: visible !important; opacity: 1 !important;
+  border: 1px solid #b88626; border-radius: 9px; background: #263348;
+}
+[data-testid="stMetric"] { background: rgba(25,36,58,.9); border: 1px solid #33435a;
+  border-radius: 14px; padding: 18px; }
+h1 { letter-spacing: -.035em; }
+</style>
+""")
 st.title("🚕 Taxi Pattern Lab")
 st.caption("January 2025 · NYC Yellow Taxi · Scalable trip pattern mining")
 artifact_path = st.sidebar.text_input("Local model directory", "artifacts/real")
@@ -100,13 +122,16 @@ elif section == "Algorithm comparison":
             if "fit_seconds" in df.columns:
                 successful = df.filter(pl.col("status") == "ok").to_pandas()
                 if len(successful):
+                    successful["series"] = successful["algorithm"] + successful["streaming"].map(
+                        {True: " (streaming)", False: ""}
+                    )
                     x = "batch_size" if filename == "batch_study.csv" else "rows"
                     for y in ["fit_seconds", "peak_rss_mb", "normalized_inertia", "silhouette"]:
                         st.plotly_chart(
-                            px.line(successful, x=x, y=y, color="algorithm", markers=True),
+                            px.line(successful, x=x, y=y, color="series", markers=True),
                             width="stretch",
                         )
-            else:
+            elif "silhouette" in df.columns and "k" in df.columns:
                 for y in ["normalized_inertia", "silhouette"]:
                     st.plotly_chart(
                         px.line(df.to_pandas(), x="k", y=y, markers=True), width="stretch"

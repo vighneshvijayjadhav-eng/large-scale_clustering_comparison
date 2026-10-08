@@ -27,3 +27,18 @@ Initial sandbox-only test attempt had 8 passes/2 temp-directory permission error
 normal temp access passed. Initial Ruff inherited external settings; explicit project rules added.
 No push yet. Real source download completed; empirical processing follows.
 Memory snapshot: 6,323,187,712 bytes usable RAM, only 386,805,760 available during parallel imports.
+
+Milestone 1 commit: 6eed215. Expanded suite: 16 tests passed in 61.70s, including both upload
+UI paths and download control, no-refit guard, projection sampling and benchmark metric checks.
+
+Milestone 2 executed: official file has 3,475,226 rows; 3,241,580 accepted; 233,646 rejected.
+SHA-256 and reasons recorded in reports/provenance.json. k=2 selected from k=2..8 on 20,000 rows
+using 2,000-row silhouette (0.473733 at k=2). Both final models trained on 100,000 real rows.
+Shared 2D/3D UMAP reducers fit 5,000 sampled rows and saved successfully. Initial UMAP attempt
+was blocked by sandbox Windows pipe permissions; rerun with required access succeeded.
+Profiles, statistics, selection plots and metadata saved. Model/data binaries remain ignored.
+
+Browser requested background and collapsible panel: added city-grid gradient, dark theme and
+visible native sidebar toggle styling. Browser upload chooser automation timed out; upload
+page functionality is tested via Streamlit AppTest with actual CSV/Parquet bytes instead.
+The preview was stopped temporarily to conserve RAM for real training and benchmarks.

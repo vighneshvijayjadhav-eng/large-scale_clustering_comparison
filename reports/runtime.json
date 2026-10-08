@@ -1,0 +1,30 @@
+{
+  "platform": "Windows-11-10.0.26200-SP0",
+  "python": "3.12.13 (main, Jul 18 2026, 17:08:38) [MSC v.1944 64 bit (AMD64)]",
+  "packages": {
+    "numpy": "2.5.3",
+    "polars": "1.44.2",
+    "scikit-learn": "1.9.1",
+    "umap-learn": "0.5.12",
+    "streamlit": "1.65.0",
+    "pyarrow": "23.0.1",
+    "psutil": "7.2.2"
+  },
+  "logical_cpus": 8,
+  "threads": 2,
+  "ram_gb": 5.888927459716797,
+  "seed": 42,
+  "features": [
+    "trip_distance",
+    "duration_minutes",
+    "speed_mph",
+    "fare_per_mile",
+    "hour_sin",
+    "hour_cos"
+  ],
+  "memory_measure": "50 ms sampled worker process RSS across startup, fit and metrics; not fit-only allocation",
+  "repeats": 1,
+  "timeout_seconds": 900,
+  "scaler": "Frozen final model training scaler, identical for every benchmark",
+  "sampling": "Seeded permutation of all cleaned rows; nested prefixes"
+}
