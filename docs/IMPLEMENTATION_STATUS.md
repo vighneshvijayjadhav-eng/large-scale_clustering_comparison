@@ -132,3 +132,11 @@ with low free memory. The functional smoke and offline tests are the reproducibl
 Dashboard/model-selection milestone committed as 07a3b0a. A staged diff check exposed unusual
 CR-only line endings in charts.py after that commit; normalized to LF in the delivery follow-up.
 Lint and working-tree diff checks pass after correction; no history rewrite was used.
+
+## Academic report delivery — 9 October 2026
+
+- Added the 34-page academic report source, DOCX/PDF builders, evidence extraction, publication figures and structural validation. Existing application code, saved models and experimental measurements are unchanged.
+- Verified raw/accepted counts (3,475,226 / 3,241,580), K=3 rationale, all five paired benchmark sizes, both full-data MiniBatch paths, full-KMeans preflight skip, batch study, model-specific profiles, training anomalies and saved real holdout outputs.
+- Executed `python -m pytest -q`: 25 passed in 49.36 s. Executed Ruff check/format checks successfully. `scripts/validate_report.py` passes: 34 A4 PDF pages, 300-word abstract, 17 numbered figures, 11 tables and six equations. All PDF pages rendered and visually inspected.
+- DOCX structural checks pass, but the packaged visual renderer fails because LibreOffice is unavailable. PDF is independently generated from the same source. Three dashboard captures are real; three missing captures have explicit placeholders after browser policy blocked further capture. Full KMeans and Colab completion are not claimed.
+- Deliverables and exact evidence/limitations: `reports/REPORT_VALIDATION.md`; reproducibility: `reports/source/README.md`. Git whitespace and staged-content checks are performed before the documentation commit. Push status is reported only after remote verification.

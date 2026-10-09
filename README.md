@@ -119,3 +119,7 @@ To check real CSV/Parquet holdouts and both saved UMAP transformations after tra
 ```powershell
 .\.venv\Scripts\python scripts/smoke_saved.py
 ```
+
+## Academic report
+
+The submission report is available as [PDF](reports/DWM_Mini_Project_Report.pdf) and [editable Word](reports/DWM_Mini_Project_Report.docx). It contains 34 verified PDF pages, 17 numbered figures, 11 tables, six equations, measured K=3 results and reproducibility appendices. See [report validation](reports/REPORT_VALIDATION.md) for evidence sources and limitations, including three labelled screenshot placeholders and unverified Word pagination. [Report build instructions](reports/source/README.md) reproduce both formats without retraining models.

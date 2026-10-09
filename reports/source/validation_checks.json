@@ -1,0 +1,22 @@
+{
+  "pdf_pages": 34,
+  "docx_pagination": "Not rendered: LibreOffice unavailable; 34 explicit source pages",
+  "numbered_figures": 17,
+  "numbered_tables": 11,
+  "equations": 6,
+  "abstract_words": 300,
+  "sha256": {
+    "benchmarks.csv": "a37dd1c50ab8a60978ecb6cdbdbefd96a3795b304bf828973e075cf52b7fdf02",
+    "batch_study.csv": "f638dfb32f61506d7f59b543b1503d19648579ab30e3b0daf509669ead51edd1",
+    "profiles.csv": "33998bfc875ecaec1fcc5a865d1bcfae60015fd98aefdecab0e2747bd5d01ddc",
+    "k_selection.csv": "f16467ad37eed8bdb63ced786198c0d8b4a714387e1c1e488397ede5bb8d661d",
+    "selection.json": "1fe46bd6b017d6ac5a3ba93fcd0c04b2cdfeb72600f8f8decca6c2d8212e8466",
+    "provenance.json": "880296cbecc4febe9c1d234cde1f14cbf2591bdddf6eddceb0e51283ad25cd1d",
+    "model_metadata.json": "184d870a19bba222ece7d98ff67e157ef815a8e82cdf24e9c2af511524e3f607",
+    "runtime.json": "a6033c6bf1924460422f6454122b8a9012abf4c3655e6a72349fd2a726ae3154",
+    "inference_smoke.json": "78d989b0661941331561701ed700d5011b03224b9db3304839220ad8c36566b8",
+    "source/report.md": "fc2df119cc99da1ee377549d1bde96a3241d86c69be4b33bf79e178bfeb4fc91",
+    "DWM_Mini_Project_Report.docx": "c939e524e7460800b399d68b2ca749bb169209e1478107884527973414ea7f69",
+    "DWM_Mini_Project_Report.pdf": "9ffe0ac9ecceaec7dde817b069887597e898fb20f1efc6ac0fe34e672692c5a8"
+  }
+}
